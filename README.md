@@ -1,5 +1,6 @@
 # Lviv
 
+[Online book shops](https://github.com/sekta-java/lviv/blob/master/bookshop_list.md) which should be indexed in the project.
 
 
 ## Project description
