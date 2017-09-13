@@ -1,0 +1,29 @@
+{
+  "title": "Learn SQL",
+  "authors": [
+    "Alan Beaulieu"
+  ],
+  "publishing": "O'Relly",
+  "yearOfPublishing": "2007",
+  "numbersOfPage": 310,
+  "ISBN": [
+    {
+      "language": "UA",
+      "number": "9785496017633",
+      "type": 13,
+      "translation": true
+    },
+    {
+      "language": "EN",
+      "number": "9781484200773",
+      "type": 13,
+      "translation": false
+    }
+  ],
+  "price": 100.0,
+  "categories": [
+    "SQL",
+    "Relational DB"
+  ],
+  "description": "Книга Алана Бьюли, эксперта по языку SQL, - прекрасный учебник для тех, кто еще не знает, но хочет освоить этот язык. Книга не только позволит приобрести начальные знания, но и расскажет о наиболее часто употребляемых мощных средствах языка SQL, используемых опытными программистами."
+}
