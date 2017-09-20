@@ -47,6 +47,8 @@ public class BookRepositoryImpl implements BookRepository {
             " INNER JOIN LVIV.BOOKS ON LVIV.AUTHOR_BOOK.BOOKID = LVIV.BOOKS.BOOKID " +
             "WHERE LVIV.BOOKS.BOOKID = ?";
 
+    private static final String SQL_SELECT_BOOK_BY_ID = SQL_SELECT_BOOKS + " WHERE  LVIV.BOOKS.BOOKID = ?";
+
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
@@ -64,8 +66,33 @@ public class BookRepositoryImpl implements BookRepository {
     }
 
     @Override
+    public Book getBookById(Integer bookId) {
+        Book book = this.getBook(bookId);
+        book.setIsbnList(this.getListIsbnsOfBook(bookId));
+        book.setCategories(this.getBookStringAttributes(bookId, SQL_SELECT_CATEGORIES, "CATEGORY"));
+        book.setAuthors(this.getBookStringAttributes(bookId, SQL_SELECT_AUTHORS, "NAME"));
+        return book;
+    }
+
+    @Override
     public boolean addNewIsbn(Isbn isbn) {
         return false;
+    }
+
+    private Book getBook(Integer bookId) {
+        return this.jdbcTemplate.queryForObject(SQL_SELECT_BOOK_BY_ID,
+                new Object[]{bookId},
+                (rs, rowNum) -> {
+                    Book book = new Book();
+                    book.setId(rs.getInt("BOOKID"));
+                    book.setTitle(rs.getString("TITLE"));
+                    book.setPublishing(rs.getString("PUBLISHING"));
+                    book.setYearOfPublishing(rs.getString("YEAROFPUBLISHING"));
+                    book.setNumberOfPages(rs.getShort("NUMBEROFPAGE"));
+                    book.setPrice(rs.getDouble("PRICE"));
+                    book.setDescription(rs.getString("DESCRIPTION"));
+                    return book;
+                });
     }
 
     private List<Book> getBooks() {

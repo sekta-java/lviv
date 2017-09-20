@@ -1,6 +1,6 @@
 package edu.cherkassy.test.lviv.testlviv.entity;
 
-import lombok.*;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;

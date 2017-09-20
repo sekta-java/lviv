@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface BookRepository {
     List<Book> getAllBooks();
+    Book getBookById(Integer bookId);
     boolean addNewIsbn(Isbn isbn);
 }
