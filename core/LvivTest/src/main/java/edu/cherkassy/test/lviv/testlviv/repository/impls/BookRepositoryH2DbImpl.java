@@ -176,33 +176,17 @@ public class BookRepositoryH2DbImpl implements BookRepository {
     private Book getBook(Integer bookId) {
         return this.jdbcTemplate.queryForObject(SQL_SELECT_BOOK_BY_ID,
                 new Object[]{bookId},
-                (rs, rowNum) -> {
-                    Book book = new Book();
-                    book.setId(rs.getInt("BOOKID"));
-                    book.setTitle(rs.getString("TITLE"));
-                    book.setPublishing(rs.getString("PUBLISHING"));
-                    book.setYearOfPublishing(rs.getString("YEAROFPUBLISHING"));
-                    book.setNumberOfPages(rs.getShort("NUMBEROFPAGE"));
-                    book.setPrice(rs.getDouble("PRICE"));
-                    book.setDescription(rs.getString("DESCRIPTION"));
-                    return book;
-                });
+                (rs, rowNum) -> Book.resultSetExtractor(rs, new Book()));
     }
 
     private List<Book> getBooks() {
-        List<Book> result = new ArrayList<>();
-        for (Map<String, Object> row : this.jdbcTemplate.queryForList(SQL_SELECT_BOOKS)) {
-            Book book = new Book();
-            book.setId((Integer) row.get("BOOKID"));
-            book.setTitle((String) row.get("TITLE"));
-            book.setPublishing((String) row.get("PUBLISHING"));
-            book.setYearOfPublishing((String) row.get("YEAROFPUBLISHING"));
-            book.setNumberOfPages((Short) row.get("NUMBEROFPAGE"));
-            book.setPrice((Double) row.get("PRICE"));
-            book.setDescription((String) row.get("DESCRIPTION"));
-            result.add(book);
-        }
-        return result;
+        return jdbcTemplate.query(SQL_SELECT_BOOKS, rs -> {
+            List<Book> result = new ArrayList<>();
+            while (rs.next()) {
+                result.add(Book.resultSetExtractor(rs, new Book()));
+            }
+            return result;
+        });
     }
 
     private List<Isbn> getListIsbnsOfBook(Integer bookId) {
@@ -211,14 +195,7 @@ public class BookRepositoryH2DbImpl implements BookRepository {
             ps.setInt(1, bookId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                Isbn isbn = new Isbn();
-                isbn.setIsbnId(rs.getInt("ISBNID"));
-                isbn.setBookId(rs.getInt("BOOKID"));
-                isbn.setNumber(rs.getString("NUMBER"));
-                isbn.setType(rs.getString("TYPE"));
-                isbn.setTranslation(rs.getBoolean("TRANSLATION"));
-                isbn.setLanguage(rs.getString("LANGUAGE"));
-                isbns.add(isbn);
+                isbns.add(Isbn.resultSetExtractor(rs, new Isbn()));
             }
             return isbns;
         });
