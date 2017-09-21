@@ -6,15 +6,17 @@ import edu.cherkassy.test.lviv.testlviv.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.sql.Statement;
+import java.util.*;
 
 @Repository
-public class BookRepositoryImpl implements BookRepository {
+public class BookRepositoryH2DbImpl implements BookRepository {
 
     private static final String SQL_SELECT_BOOKS = "SELECT " +
             "LVIV.BOOKS.BOOKID, " +
@@ -49,10 +51,30 @@ public class BookRepositoryImpl implements BookRepository {
 
     private static final String SQL_SELECT_BOOK_BY_ID = SQL_SELECT_BOOKS + " WHERE  LVIV.BOOKS.BOOKID = ?";
 
+    private static final String SQL_INSERT_BOOK = "INSERT INTO LVIV.BOOKS " +
+            "(BOOKID ,TITLE, PUBLISHING, YEAROFPUBLISHING, NUMBEROFPAGE, PRICE, DESCRIPTION) " +
+            "VALUES (DEFAULT ,?, ?, ?, ?, ?, ?)";
+
+    private static final String SQL_INSERT_ISBN = "INSERT INTO LVIV.ISBN " +
+            "(ISBNID, BOOKID, LANGUAGE, NUMBER, TYPE, TRANSLATION) " +
+            "VALUES (DEFAULT, ?, ?, ?, ?, ?)";
+
+    private static final String SQL_INSERT_CATEGORY = "INSERT INTO LVIV.CATEGORY " +
+            " (CATEGORYID, CATEGORY) VALUES (DEFAULT , ?)";
+
+    private static final String SQL_INSERT_AUTHORS = "INSERT INTO LVIV.AUTHORS" +
+            " (AUTHORID, NAME) VALUES (DEFAULT , ?)";
+
+    private static final String SQL_INSERT_BOOK_CATEGORY = "INSERT INTO LVIV.BOOK_CATEGORY " +
+            "(BOOKID, CATEGORYID) VALUES (?, ?)";
+
+    private static final String SQL_INSERT_AUTHOR_BOOK = "INSERT INTO LVIV.AUTHOR_BOOK " +
+            "(BOOKID, AUTHORID) VALUES (?, ?)";
+
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public BookRepositoryImpl(JdbcTemplate jdbcTemplate) {
+    public BookRepositoryH2DbImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -75,8 +97,80 @@ public class BookRepositoryImpl implements BookRepository {
     }
 
     @Override
-    public boolean addNewIsbn(Isbn isbn) {
-        return false;
+    public int addNewIsbn(Isbn isbn) {
+        return this.addIsbns(Collections.singletonList(isbn));
+    }
+
+    @Override
+    public int addNewBook(Book book) {
+        int rowAddCount = 0;
+
+        KeyHolder holder = new GeneratedKeyHolder();
+        rowAddCount += this.jdbcTemplate.update(con -> {
+            PreparedStatement ps = con.prepareStatement(SQL_INSERT_BOOK, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, book.getTitle());
+            ps.setString(2, book.getPublishing());
+            ps.setString(3, book.getYearOfPublishing());
+            ps.setShort(4, book.getNumberOfPages());
+            ps.setDouble(5, book.getPrice());
+            ps.setString(6, book.getDescription());
+            return ps;
+        }, holder);
+
+        Integer generatedId = holder.getKey().intValue();
+        book.setId(generatedId);
+        book.getIsbnList().forEach(isbn -> isbn.setBookId(generatedId));
+
+        rowAddCount += this.addIsbns(book.getIsbnList());
+        HashMap<String, List<String>> attrs = new HashMap<>();
+        attrs.put("CATEGORIES", book.getCategories());
+        attrs.put("NAME", book.getAuthors());
+
+        rowAddCount += this.addStringsAttributesToBook(attrs, book.getId());
+
+        return rowAddCount;
+    }
+
+    private int addIsbns(List<Isbn> isbns) {
+        int addedRows = 0;
+        for (Isbn isbn : isbns) {
+            addedRows += this.jdbcTemplate.update(SQL_INSERT_ISBN,
+                    isbn.getBookId(),
+                    isbn.getLanguage(),
+                    isbn.getNumber(),
+                    isbn.getType(),
+                    isbn.getTranslation());
+        }
+        return addedRows;
+    }
+
+    private int addStringsAttributesToBook(Map<String, List<String>> attributes, Integer bookId) {
+        int rowAddCount = 0;
+        for (Map.Entry<String, List<String>> entry : attributes.entrySet()) {
+            if (entry.getKey().equals("CATEGORIES")) {
+                for (String attribute : entry.getValue()) {
+                    rowAddCount += fillIntermediateTable(attribute, SQL_INSERT_CATEGORY, SQL_INSERT_BOOK_CATEGORY, bookId);
+                }
+            } else if (entry.getKey().equals("NAME")) {
+                for (String attribute : entry.getValue()) {
+                    rowAddCount += fillIntermediateTable(attribute, SQL_INSERT_AUTHORS, SQL_INSERT_AUTHOR_BOOK, bookId);
+                }
+            }
+        }
+        return rowAddCount;
+    }
+
+    private int fillIntermediateTable(String attr, String insertAttribute, String insertIntermediateTable, Integer bookId) {
+        int rowAddCount = 0;
+        KeyHolder holder = new GeneratedKeyHolder();
+        rowAddCount += this.jdbcTemplate.update(con -> {
+            PreparedStatement ps = con.prepareStatement(insertAttribute, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, attr);
+            return ps;
+        }, holder);
+        Long attrId = holder.getKey().longValue();
+        rowAddCount += this.jdbcTemplate.update(insertIntermediateTable, bookId, attrId);
+        return rowAddCount;
     }
 
     private Book getBook(Integer bookId) {

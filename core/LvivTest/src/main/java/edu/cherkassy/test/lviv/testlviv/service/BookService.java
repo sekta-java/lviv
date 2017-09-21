@@ -1,11 +1,11 @@
-package edu.cherkassy.test.lviv.testlviv.repository;
+package edu.cherkassy.test.lviv.testlviv.service;
 
 import edu.cherkassy.test.lviv.testlviv.entity.Book;
 import edu.cherkassy.test.lviv.testlviv.entity.Isbn;
 
 import java.util.List;
 
-public interface BookRepository {
+public interface BookService {
     List<Book> getAllBooks();
     Book getBookById(Integer bookId);
     int addNewIsbn(Isbn isbn);

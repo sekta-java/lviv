@@ -1,15 +1,16 @@
 package edu.cherkassy.test.lviv.testlviv;
 
-import edu.cherkassy.test.lviv.testlviv.repository.impls.BookRepositoryImpl;
+import edu.cherkassy.test.lviv.testlviv.service.BookService;
+import edu.cherkassy.test.lviv.testlviv.service.impls.BookServiceImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class TestLvivApplication {
     public static void main(String[] args) {
-        BookRepositoryImpl repository = SpringApplication
+        BookService repository = SpringApplication
                 .run(TestLvivApplication.class, args)
-                .getBean(BookRepositoryImpl.class);
+                .getBean(BookServiceImpl.class);
 
         if (repository != null) {
             System.out.println("\n*****TEST getAllBooks() method: ******");

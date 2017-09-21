@@ -3,6 +3,8 @@ package edu.cherkassy.test.lviv.testlviv.entity;
 import lombok.*;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Isbn {
     private Integer isbnId;
     private Integer bookId;

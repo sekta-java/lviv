@@ -1,11 +1,13 @@
 package edu.cherkassy.test.lviv.testlviv.entity;
 
-import lombok.Data;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Book {
     private Integer id;
     private String title;
