@@ -29,7 +29,7 @@ public class Extractor {
 
         Book book = new Book();
         book.setTitle(characteristics.select("#title").text());
-        book.setAuthors(StringItemsToList(characteristics.select("#authors").text()));
+        book.setAuthors(stringItemsToList(characteristics.select("#authors").text()));
 
         Isbn isbnUa = new Isbn();
         isbnUa.setLanguage("UA");
@@ -52,13 +52,13 @@ public class Extractor {
         book.setIsbns(new ArrayList<>(Arrays.asList(isbnUa, isbnEn10, isbnEn13)));
         String price = characteristics.select("#price").text().replace(",", ".");
         book.setPrice(new BigDecimal(price));
-        book.setCategories(StringItemsToList(characteristics.select("#categories").text()));
+        book.setCategories((characteristics.select("#categories").text()));
         book.setDescription(characteristics.select("#annotation").text());
 
         System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(book));
     }
 
-    private static List<String> StringItemsToList(String itemsText) {
+    private static List<String> stringItemsToList(String itemsText) {
         return Stream.of(itemsText.split(",")).map(String::trim).collect(Collectors.toList());
     }
 }
